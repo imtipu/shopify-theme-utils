@@ -1,1 +1,53 @@
 
+{% comment %}
+  Renders product buy button
+
+  Accepts:
+  - product: {Object} Product object.
+  - product_form_id: {String} Product form ID to connect with
+
+  Usage:
+  {% render 'product-buy-button', product: product, product_form_id: product_form_id %}
+{% endcomment %}
+
+{%- liquid
+  assign variant = product.selected_or_first_available_variant
+  assign add_to_cart_classes = 'w-full py-2 font-semibold flex justify-center items-center border border-zinc-900 rounded-none'
+  if variant.available == false
+    assign add_to_cart_classes = add_to_cart_classes | append: ' opacity-50 cursor-not-allowed'
+  else
+    assign add_to_cart_classes = add_to_cart_classes | append: ' text-zinc-900 bg-white hover:text-zinc-100 hover:bg-zinc-900 cursor-pointer'
+  endif
+-%}
+
+<div class="product-form__buttons flex flex-col gap-3 w-full mt-4">
+  <input type="hidden" name="id" value="{{ variant.id }}" disabled>
+
+  <button
+    type="submit"
+    title="Add to Cart"
+    name="add"
+    class="{{add_to_cart_classes}} "
+    {% if variant.available == false %}
+      disabled
+    {% endif %}
+    form="{{ product_form_id }}"
+  >
+   {% comment %} <span class="material-symbols-outlined loading-spinner animate-spin hidden self-start mr-2" data-loading-spinner>progress_activity</span> {% endcomment %}
+    {% render 'loading-spinner', class: 'mr-2' %}
+    <span data-add-to-cart-text>
+      {%- if variant.available -%}
+        Add to Cart
+      {%- else -%}
+        Out of Stock
+      {%- endif -%}
+    </span>
+  </button>
+
+  {%- comment -%}
+    Dynamic checkout button removed since we no longer have access to block.settings
+  {%- endcomment -%}
+   {{ form | payment_button }}
+
+
+</div>
