@@ -1,0 +1,82 @@
+{% comment %}
+  Renders product variant-picker with button selection
+  only for product page main section
+
+  Accepts:
+  - section: required
+  - product: {Object} product object.
+  - product_form_id: {String} Id of the product form to which the variant picker is associated.
+  - update_url: {Boolean} whether or not to update url when changing variants. If false, the url isn't updated. Default: true (optional).
+  Usage:
+  {% render 'product-variant-picker', product: product, product_form_id: product_form_id %}
+{% endcomment %}
+{%- unless product.has_only_default_variant -%}
+  <div
+    class="variant-picker js-variant-picker mt-4"
+    data-section="{{ section.id }}"
+    data-product-id="{{ product.id }}"
+    data-url="{{ product.url }}"
+    {% if update_url == false %}
+      data-update-url="false"
+    {% endif %}
+  >
+    {%- for option in product.options_with_values -%}
+      <fieldset class="flex flex-col w-full js mb-4 select-none">
+        <legend class="text-sm font-medium mb-2">
+          {{ option.name }}:
+          <span data-selected-option-value="option-{{ option.position }}">
+            {{ option.selected_value }}</span>
+        </legend>
+
+        <div class="flex flex-wrap gap-2">
+          {%- for value in option.values -%}
+            <div class="variant-option">
+              <input
+                type="radio"
+                id="{{ section.id }}-option-{{ option.position }}-{{ value | escape }}"
+                name="options[{{ option.name | escape }}]"
+                value="{{ value | escape }}"
+                form="{{ product_form_id }}"
+                {% if option.selected_value == value %}
+                  checked
+                {% endif %}
+                class="sr-only variant-input"
+                data-option-position="{{ option.position }}"
+                data-value="{{ value | escape }}"
+              >
+
+              <label
+                for="{{ section.id }}-option-{{ option.position }}-{{ value | escape }}"
+                class="variant-button variant-label {% if option.selected_value == value %}selected-variant{% endif %}"
+                data-option-position="{{ option.position }}"
+                data-value="{{ value | escape }}"
+              >
+                {{ value }}
+              </label>
+            </div>
+          {%- endfor -%}
+        </div>
+      </fieldset>
+    {%- endfor -%}
+
+    <div class="visually-hidden">
+      <select name="id" form="{{ product_form_id }}" data-variant-select>
+        {%- for variant in product.variants -%}
+          <option
+            value="{{ variant.id }}"
+            {% if variant.available == false %}
+              disabled
+            {% endif %}
+            {% if variant == product.selected_or_first_available_variant %}
+              selected="selected"
+            {% endif %}
+            data-sku="{{ variant.sku }}"
+            data-variant-data="{{ variant | json | escape }}"
+          >
+            {{ variant.title }} - {{ variant.price | money }}
+          </option>
+        {%- endfor -%}
+      </select>
+    </div>
+  </div>
+{%- endunless -%}
