@@ -1,1 +1,41 @@
 
+{% comment %}
+  Renders a product price
+
+  Accepts:
+  - product: {Object} Product object
+  - use_variant: {Boolean} Show variant price if available (optional)
+  - show_compare_at_price: {Boolean} Show compare at price if available (optional)
+  - price_class: {String} Custom class for the price tag (optional)
+  - compare_class: {String} Custom class for the compare price tag (optional)
+
+  Usage:
+  {% render 'price', product: product, use_variant: true %}
+{% endcomment %}
+
+{%- liquid
+  if use_variant
+    assign target = product.selected_or_first_available_variant
+  else
+    assign target = product
+  endif
+
+  assign compare_at_price = target.compare_at_price
+  assign price = target.price | default: 1999
+-%}
+
+<div class="price-container" data-product-id="{{ product.id }}" data-price-container>
+  <span class="text-lg font-semibold {{ price_class | default: 'text-primary-900' }}" data-product-price>
+    {{ price | money }}
+  </span>
+
+  {%- if show_compare_at_price and compare_at_price > price -%}
+    <span class="text-sm line-through {{ compare_class | default: 'text-gray-500 ml-2' }}" data-product-compare-price>
+      {{ compare_at_price | money }}
+    </span>
+    <span class="text-sm font-medium ml-2 text-red-600" data-product-saving>
+      {%- assign savings = compare_at_price | minus: price | times: 100.0 | divided_by: compare_at_price | round %}
+      {{savings}}%
+    </span>
+  {%- endif -%}
+</div>
